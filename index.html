@@ -388,13 +388,14 @@
 
     /* --- UC PACKS GRID --- */
     .pack-section-title {
-      font-family: var(--font-display);
-      font-size: 16px;
-      color: var(--primary);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 1px;
       margin-top: 20px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
     .pack-section-title:first-of-type { margin-top: 5px; }
 
@@ -731,6 +732,16 @@
       font-size: 11px; padding: 10px; border-radius: 8px; margin-top: 10px;
       display: none; text-align: left;
     }
+    
+    /* FAQ Section Styles */
+    .faq-section { margin-top: 25px; margin-bottom: 25px; text-align: left; }
+    .faq-item { background: rgba(255,255,255,0.03); border: 1px solid var(--surface-border); border-radius: var(--radius-md); margin-bottom: 10px; overflow: hidden; transition: all 0.3s ease; }
+    .faq-question { padding: 15px; display: flex; justify-content: space-between; align-items: center; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .faq-answer { padding: 0 15px; max-height: 0; overflow: hidden; color: var(--text-muted); font-size: 13px; line-height: 1.6; transition: max-height 0.3s ease, padding 0.3s ease; }
+    .faq-item.active { border-color: var(--primary); background: rgba(255, 184, 0, 0.05); }
+    .faq-item.active .faq-answer { padding: 0 15px 15px 15px; max-height: 300px; }
+    .faq-item.active .faq-question i { transform: rotate(45deg); color: var(--primary); }
+    .faq-question i { transition: transform 0.3s ease; color: var(--text-muted); }
 
     /* Admin specific CSS additions */
     #newPackType option { background-color: var(--bg-dark); color: #fff; }
@@ -775,7 +786,6 @@
 
         <div class="partner-block" id="partnerBlock">
           <img src="bgmi-official.webp" alt="BGMI Official" class="official-logo" draggable="false">
-          <!-- Added Authorised Seller text here -->
           <div style="color: var(--success); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px;">
             BGMI Authorised Seller
           </div>
@@ -787,7 +797,6 @@
           <div class="trust-pill" id="pillSupport"><i class="fa-solid fa-headset"></i> <span id="dispSupportBadge">24/7</span></div>
         </div>
 
-        <!-- REARRANGED STATS BADGE HERE -->
         <div class="live-stats" id="dispLiveStats">
           <div class="stat-badge" id="pillStats" style="display: flex; align-items: center; gap: 5px;">
             <span id="liveOrders" class="stat-number">1425</span> 
@@ -812,7 +821,6 @@
     <!-- STEP 1: PLAYER DETAILS -->
     <div id="step1" class="step active">
       <div class="step-content">
-        <!-- Added info icon next to Title -->
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 25px;">
             <h2 class="step-title" id="dispStep1Title" style="margin-bottom: 0;">Player Details</h2>
             <i class="fa-solid fa-circle-info info-icon" style="font-size: 18px; margin-left: 0;" onclick="openModal('playerDetailsModal')"></i>
@@ -846,13 +854,36 @@
           <button type="button" class="btn btn-primary" id="next1" disabled>Verify & Continue <i class="fa-solid fa-arrow-right"></i></button>
         </div>
       </div>
+
+      <!-- SEPARATED HOW TO REDEEM SECTION -->
+      <div class="step-content" style="margin-top: 20px;">
+          <h3 style="color: var(--primary); font-family: var(--font-display); font-size: 20px; margin-bottom: 20px; text-transform: uppercase;">How to redeem</h3>
+          
+          <h4 style="color: #fff; font-size: 15px; margin-bottom: 8px;">How do I find my BGMI User ID (UID)?</h4>
+          <p style="color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 15px;">Open BGMI and enter the lobby. Tap on the profile picture and navigate to Basic Info. You will see a numeric User ID above the profile picture. Make sure to copy or enter the correct numbers before making the purchase, instead of using your in-game name.</p>
+          <img src="uid-ss.webp" alt="UID Screenshot" style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); margin-bottom: 25px;">
+          
+          <h4 style="color: #fff; font-size: 15px; margin-bottom: 8px;">How do I find my BGMI ID name (IGN)?</h4>
+          <p style="color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 10px;">Open BGMI and enter the lobby. Tap on the profile picture and navigate to Basic Info. You will see a BGMI ID name (IGN) above or beside the profile picture. Make sure to copy or enter the correct name before making the purchase.</p>
+          <img src="bgminame-ss.webp" alt="IGN Screenshot" style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); margin-bottom: 10px;">
+      </div>
     </div>
 
     <!-- STEP 2: SELECT PACK -->
     <div id="step2" class="step">
       <div class="step-content">
-        <h2 class="step-title" id="dispStep2Title">Select BGMI UC Packs</h2>
-        <p class="subnote">Top up for <span id="displayUid" style="color:var(--primary);">--</span> (<span id="displayIgn" style="color:#fff;">--</span>)</p>
+        
+        <!-- User Details Bar placed ABOVE the title -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: var(--radius-md); border: 1px solid var(--surface-border); margin-bottom: 20px; margin-top: 5px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-display); overflow: hidden; white-space: nowrap; flex: 1; margin-right: 10px;">
+                <span id="displayUid" style="color:var(--primary); font-weight: 700; font-size: 15px; text-overflow: ellipsis; overflow: hidden; flex-shrink: 0;">--</span>
+                <span style="color: var(--text-muted); font-size: 14px; flex-shrink: 0;">•</span>
+                <span id="displayIgn" style="color:#fff; font-weight: 600; font-size: 14px; text-overflow: ellipsis; overflow: hidden;">--</span>
+            </div>
+            <button type="button" class="btn btn-secondary" id="backToDetails" style="padding: 6px 12px; font-size: 13px; width: auto; margin: 0; min-height: unset; flex-shrink: 0;">Change</button>
+        </div>
+
+        <h2 class="step-title" id="dispStep2Title" style="margin-bottom: 20px;">UC PACKS</h2>
 
         <!-- TRIAL UC PACK SECTION -->
         <h3 class="pack-section-title" id="trialPackTitle">Trial UC Pack</h3>
@@ -866,8 +897,9 @@
           <!-- Rendered dynamically -->
         </div>
 
+        <!-- Buttons with Back button on the left -->
         <div class="btn-row">
-           <button type="button" class="btn btn-secondary" id="backToDetails">Back</button>
+           <button type="button" class="btn btn-secondary" onclick="showStep(1)">Back</button>
            <button type="button" class="btn btn-primary" id="next2" disabled>Checkout</button>
         </div>
       </div>
@@ -980,7 +1012,79 @@
         </div>
       </div>
     </div>
-  </div>
+    
+    <!-- GLOBAL INFO SECTION (APPEARS ON ALL PAGES) -->
+    <div style="background: rgba(14, 14, 18, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--surface-border); border-radius: var(--radius-lg); padding: 25px 20px; margin-top: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+        <h3 style="color: var(--primary); font-family: var(--font-display); font-size: 18px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Why Choose UCify?</h3>
+        <p style="color: var(--text-muted); font-size: 12px; line-height: 1.6; text-align: justify; text-align-last: center;">Top up your BGMI account with Unknown Cash (UC) directly through UCify. No voucher codes, no redeem steps. Just enter your BGMI User ID, pick a UC pack, and the credits land in your account instantly. UCify offers both one-time bonus packs (with up to 100% bonus UC) and standard packs, so you can grab skins, the Royale Pass, outfits, and weapon upgrades without the hassle. All transactions are digital, single-use, and processed in real time.</p>
+    </div>
+
+    <!-- GLOBAL FAQ SECTION (APPEARS ON ALL PAGES) -->
+    <div class="faq-section">
+        <h3 style="color: var(--primary); font-family: var(--font-display); font-size: 18px; margin-bottom: 15px; text-transform: uppercase; text-align: center;">Frequently Asked Questions</h3>
+        
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+                <span>How does the UC top-up work?</span>
+                <i class="fas fa-plus"></i>
+            </div>
+            <div class="faq-answer">
+                Enter your BGMI User ID on this page, choose a UC pack, and finish the payment. The UC will be added directly to your in-game account. No redemption code required.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+                <span>How long does delivery take?</span>
+                <i class="fas fa-plus"></i>
+            </div>
+            <div class="faq-answer">
+                Most top-ups are delivered within a few minutes of successful payment. In rare cases, it may take up to 24 hours. If you don't see the UC in your app, please restart the app and check again.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+                <span>What should I do if I entered the wrong User ID?</span>
+                <i class="fas fa-plus"></i>
+            </div>
+            <div class="faq-answer">
+                UC credited to another account cannot be reversed or transferred. Please double-check your BGMI User ID before confirming the purchase.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+                <span>Can I gift UC to someone else?</span>
+                <i class="fas fa-plus"></i>
+            </div>
+            <div class="faq-answer">
+                Absolutely! You can buy UC for any BGMI player. If you're purchasing for the first time, simply enter your friend's BGMI User ID and their UC will be topped up directly. If you've already saved your own BGMI ID from a previous purchase, tap "Change" on the BGMI ID section, enter your friend's ID, and proceed with the purchase. The UC will be delivered to whichever ID is shown at checkout.
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+                <span>What payment methods are accepted?</span>
+                <i class="fas fa-plus"></i>
+            </div>
+            <div class="faq-answer">
+                UCify accepts UPI as well as debit and credit cards. The available payment methods will be displayed at checkout.
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+                <span>Payment done but UC not received, what should I do?</span>
+                <i class="fas fa-plus"></i>
+            </div>
+            <div class="faq-answer">
+                Wait about 30 minutes, then check whether the UC has been credited to your BGMI account. If it still hasn't arrived, contact UCify support with your order ID and BGMI User ID.
+            </div>
+        </div>
+    </div>
+
+  </div> <!-- End Container -->
 
   <!-- SITE FOOTER -->
   <div class="site-footer">
@@ -1267,7 +1371,10 @@
           </div>
           
           <hr style="border-color: #333; margin: 30px 0 20px;">
-          <button type="button" class="btn btn-primary" id="adminSaveBtn" onclick="saveAdminSettings()">Save All Changes</button>
+          <div style="display: flex; gap: 10px;">
+             <button type="button" class="btn btn-secondary" id="adminResetBtn" onclick="resetAdminSettings()" style="flex: 1; border-color: var(--error); color: var(--error); font-size: 13px;"><i class="fas fa-undo"></i> Reset Default</button>
+             <button type="button" class="btn btn-primary" id="adminSaveBtn" onclick="saveAdminSettings()" style="flex: 2;">Save All Changes</button>
+          </div>
        </div>
     </div>
   </div>
@@ -1397,6 +1504,12 @@
                     if(dbConfig.texts.ordersToday === "Orders Today" || dbConfig.texts.ordersToday === "Packs Delivered") {
                         dbConfig.texts.ordersToday = "Packs Delivered Today";
                     }
+                    if(dbConfig.texts.step2Title === "Select BGMI UC Packs") {
+                        dbConfig.texts.step2Title = "UC PACKS";
+                    }
+                    if(dbConfig.policies.contentContact && dbConfig.policies.contentContact.includes("Krafton Inc")) {
+                        dbConfig.policies.contentContact = dbConfig.policies.contentContact.replace("Krafton Inc", "UCIFY (INDIA) PRIVATE LIMITED");
+                    }
 
                     if(dbConfig.razorpayLinks === undefined) dbConfig.razorpayLinks = [];
                     // Migrate older single link to multiple array format
@@ -1460,7 +1573,7 @@
             supportBadge: "24/7",
             ordersToday: "Packs Delivered Today", 
             step1Title: "Player Details",
-            step2Title: "Select BGMI UC Packs",
+            step2Title: "UC PACKS",
             step3Title: "Payment",
             step3Subnote: "Scan & pay using any UPI app",
             totalPayable: "TOTAL PAYABLE (EXACT)",
@@ -1496,7 +1609,7 @@
             showPrivacy: true, contentPrivacy: "<h4>1. Information We Collect</h4><p>We collect your BGMI Player ID (UID) and In-Game Name (IGN) solely for the purpose of delivering the digital product. We process payments securely and do not store financial data.</p><h4>2. How We Use Your Data</h4><p>Your data is used strictly for order fulfillment, customer support, and transaction verification.</p><h4>3. Data Sharing</h4><p>We do not sell, trade, or rent user data to third parties. Information is only shared with our payment provider as required to process your transaction.</p>",
             showRefund: true, contentRefund: "<h4>1. Digital Goods Policy</h4><p>Because the products we sell are strictly digital in-game currency, <strong>all sales are final</strong>. Once the UC is successfully transferred to the provided UID, no refunds or cancellations can be processed.</p><h4>2. Failed Transactions</h4><p>If your payment is deducted but the order fails on our end, a full refund will be automatically initiated to your original payment method within 5-7 business days.</p><h4>3. Incorrect UID</h4><p>We are not responsible for UC sent to an incorrect UID provided by the user. No refunds will be issued in such cases.</p>",
             showShipping: true, contentShipping: "<h4>1. Delivery Method</h4><p>All deliveries are purely digital. No physical product will be shipped to your address.</p><h4>2. Delivery Time</h4><p>UC is typically credited to your account instantly or within 10-15 minutes. In case of server delays, please allow up to 24 hours for the transaction to reflect in your BGMI account.</p>",
-            showContact: true, contentContact: "<h4>Get in Touch</h4><p>If you face any issues with your order, please contact our support team. Have your Order ID and Transaction ID ready.</p><ul><li><strong>Business Name:</strong> Krafton Inc</li><li><strong>Email Support:</strong> ucify.support@gmail.com</li><li><strong>Registered Address:</strong> HD-445, WeWork DLF Two Horizon Centre, 5th Floor, DLF Phase 5, Sector 43, Golf Course Road, Gurugram, Haryana 122002</li><li><strong>Business Address:</strong> 04A131, WeWork DLF Two Horizon Centre, 4th Floor, DLF Phase 5, Sector 43, Golf Course Road, Gurugram, Haryana 122002</li></ul>"
+            showContact: true, contentContact: "<h4>Get in Touch</h4><p>If you face any issues with your order, please contact our support team. Have your Order ID and Transaction ID ready.</p><ul><li><strong>Business Name:</strong> UCIFY (INDIA) PRIVATE LIMITED</li><li><strong>Email Support:</strong> ucify.support@gmail.com</li><li><strong>Registered Address:</strong> HD-445, WeWork DLF Two Horizon Centre, 5th Floor, DLF Phase 5, Sector 43, Golf Course Road, Gurugram, Haryana 122002</li><li><strong>Business Address:</strong> 04A131, WeWork DLF Two Horizon Centre, 4th Floor, DLF Phase 5, Sector 43, Golf Course Road, Gurugram, Haryana 122002</li></ul>"
         },
         trialPacks: [ { uc: 13, price: 5, rzpLinks: [] } ],
         bulkPacks: [
@@ -1512,6 +1625,14 @@
     // Auto-migrate "Orders Today" to "Packs Delivered Today" if they had the old default saved
     if (window.siteConfig.texts && (window.siteConfig.texts.ordersToday === "Orders Today" || window.siteConfig.texts.ordersToday === "Packs Delivered")) {
         window.siteConfig.texts.ordersToday = "Packs Delivered Today";
+    }
+    
+    // Auto-migrate old step 2 title and contact string if they have existing local config
+    if (window.siteConfig.texts && window.siteConfig.texts.step2Title === "Select BGMI UC Packs") {
+        window.siteConfig.texts.step2Title = "UC PACKS";
+    }
+    if (window.siteConfig.policies && window.siteConfig.policies.contentContact && window.siteConfig.policies.contentContact.includes("Krafton Inc")) {
+        window.siteConfig.policies.contentContact = window.siteConfig.policies.contentContact.replace("Krafton Inc", "UCIFY (INDIA) PRIVATE LIMITED");
     }
 
     if(window.siteConfig.razorpayLinks === undefined) window.siteConfig.razorpayLinks = [];
@@ -1654,7 +1775,7 @@
     document.body.addEventListener('touchstart', initAudio, { once: true });
     document.addEventListener("visibilitychange", function() { if (document.hidden) { bgm.pause(); } else { bgm.play().catch(e => console.log("Waiting")); } });
 
-    // Modals Opening/Closing Logic (Updated to auto-play and pause specific video elements)
+    // Modals Opening/Closing Logic 
     window.openModal = function(modalId) { 
         document.getElementById(modalId).classList.add('active'); 
         document.body.classList.add('modal-open'); 
@@ -1677,6 +1798,18 @@
     window.closeModalOutside = function(event, modalId) { 
         if (event.target.id === modalId) {
             window.closeModal(modalId);
+        }
+    }
+    
+    // FAQ Toggle Logic
+    window.toggleFAQ = function(el) {
+        const item = el.parentElement;
+        const isActive = item.classList.contains('active');
+        
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+        
+        if (!isActive) {
+            item.classList.add('active');
         }
     }
 
@@ -1853,6 +1986,45 @@
         } else { 
             alert("Please enter valid UC and Price"); 
         }
+    }
+
+    // --- RESET TO DEFAULT SETTINGS LOGIC ---
+    window.resetAdminSettings = async function() {
+        if (!confirm("Are you sure you want to reset ALL settings to default? \nThis will completely wipe your current links, packs, text changes, and restore the default Admin Password.")) {
+            return;
+        }
+
+        const btn = document.getElementById('adminResetBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Resetting...';
+        btn.disabled = true;
+
+        // Deep copy the default config to completely reset the state
+        window.siteConfig = JSON.parse(JSON.stringify(defaultAdminConfig));
+
+        // Save locally
+        localStorage.setItem('ucifyAdminConfig', JSON.stringify(window.siteConfig));
+
+        // Save to Database
+        if (window.saveConfigToDB) {
+            const success = await window.saveConfigToDB(window.siteConfig);
+            if (!success) {
+                alert("Database reset failed. Check console or make sure Firebase is configured. Only local data was reset.");
+            }
+        }
+
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            
+            // Re-render everything with defaults
+            openAdminPanel(); 
+            window.applyUISettings(); 
+            window.renderSitePacks(); 
+            window.injectDynamicStatusUI();
+            
+            alert("Settings have been successfully reset to default.");
+        }, 1000);
     }
 
     window.saveAdminSettings = async function() {
