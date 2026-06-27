@@ -213,16 +213,17 @@
     .stat-badge {
       font-size: 12px;
       font-weight: 600;
-      color: #fff;
-      background: rgba(0, 224, 255, 0.05);
-      border: 1px solid rgba(0, 224, 255, 0.2);
-      padding: 6px 12px;
-      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      padding: 8px 16px;
+      border-radius: 50px;
       display: flex;
       align-items: center;
       gap: 6px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     }
-    .stat-number { color: var(--accent); font-weight: 800; font-family: var(--font-display); }
+    .stat-number { color: var(--primary); font-weight: 800; font-family: var(--font-display); font-size: 14px; }
 
     /* --- PROGRESS BAR --- */
     .progress-wrap { margin-bottom: 25px; padding: 0 10px; }
@@ -793,7 +794,7 @@
 
         <div class="partner-block" id="partnerBlock">
           <img src="bgmi-official.webp" alt="BGMI Official" class="official-logo" draggable="false">
-          <div style="color: var(--success); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px;">
+          <div style="color: var(--primary); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px;">
             BGMI Authorised Seller
           </div>
         </div>
@@ -805,10 +806,10 @@
         </div>
 
         <div class="live-stats" id="dispLiveStats">
-          <div class="stat-badge" id="pillStats" style="display: flex; align-items: center; gap: 5px;">
+          <div class="stat-badge" id="pillStats">
             <span id="liveOrders" class="stat-number">1425</span> 
             <img src="uc-logo.webp" alt="UC" style="width: 14px; height: 14px; object-fit: contain;">
-            <span id="dispOrdersToday">Packs Delivered Today</span>
+            <span id="dispOrdersToday" style="color: var(--text-muted);">Packs Delivered Today</span>
           </div>
         </div>
       </div>
