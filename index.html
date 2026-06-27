@@ -540,11 +540,6 @@
       font-size: 24px; color: var(--primary); font-family: var(--font-display); font-weight: bold; margin: 10px 0; letter-spacing: 2px;
     }
 
-    /* --- NORMAL PAYMENT UI --- */
-    #normalPaymentUI {
-      /* Base styles handled globally */
-    }
-
     /* --- SUCCESS (STEP 4) --- */
     .success-screen { text-align: center; }
     .success-icon { 
@@ -890,7 +885,7 @@
 
         <!-- Buttons with Back button on the left -->
         <div class="btn-row">
-           <button type="button" class="btn btn-secondary" onclick="showStep(1)">Back</button>
+           <button type="button" class="btn btn-secondary" onclick="history.back()">Back</button>
            <button type="button" class="btn btn-primary" id="next2" disabled>Checkout</button>
         </div>
       </div>
@@ -1766,39 +1761,11 @@
     document.body.addEventListener('touchstart', initAudio, { once: true });
     document.addEventListener("visibilitychange", function() { if (document.hidden) { bgm.pause(); } else { bgm.play().catch(e => console.log("Waiting")); } });
 
-    // --- MODALS & HISTORY API LOGIC ---
-
-    // HISTORY API: Watch for the phone's back button press (or swipe gesture)
-    window.addEventListener('popstate', function(event) {
-        // Hamesha sabse pehle koi bhi khula hua modal band karo jab state pop ho
-        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
-            modal.classList.remove('active');
-            const vid = modal.querySelector('video');
-            if (vid) vid.pause();
-        });
-        document.body.classList.remove('modal-open');
-
-        // Phir check karo ki state kaunsi hai aur wahan navigate karo
-        if (event.state) {
-            if (event.state.type === 'step') {
-                showStep(event.state.id, true);
-            } else if (event.state.type === 'modal') {
-                // Agar hum physically aage badhte hue kisi purane modal par chale gaye to
-                showStep(event.state.step, true); // Keep step context
-                document.getElementById(event.state.id).classList.add('active');
-                document.body.classList.add('modal-open');
-            }
-        } else {
-            // Default condition (bahar nikalne se roko if possible, back to step 1)
-            showStep(1, true);
+    // Modals Opening/Closing Logic with Browser History Support
+    window.openModal = function(modalId, isBack = false) { 
+        if (!isBack) {
+            history.pushState({ modal: modalId, type: 'modal' }, document.title, window.location.href);
         }
-    });
-
-    window.openModal = function(modalId) { 
-        // 1. History mein ek nayi state add karo modal ke liye
-        history.pushState({ type: 'modal', id: modalId, step: currentStep }, '', '#modal-' + modalId);
-        
-        // 2. Visually open the modal
         document.getElementById(modalId).classList.add('active'); 
         document.body.classList.add('modal-open'); 
         const vid = document.querySelector(`#${modalId} video`);
@@ -1808,24 +1775,16 @@
         }
     }
     
-    function forceCloseModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if(modal) {
-            modal.classList.remove('active'); 
-            document.body.classList.remove('modal-open'); 
-            const vid = modal.querySelector('video');
-            if (vid) vid.pause();
+    window.closeModal = function(modalId, isBack = false) { 
+        if (!isBack) {
+            history.back(); // Browser popstate will handle the visual closing
+            return;
         }
-    }
-
-    window.closeModal = function(modalId) { 
-        // Agar user ne 'X' dabaya hai manually, to hum programmatically history me piche jayenge,
-        // jisse popstate trigger hoga, aur modal khud hi visually band ho jayega (clean history).
-        if (history.state && history.state.type === 'modal' && history.state.id === modalId) {
-            history.back();
-        } else {
-            // Fallback (agar state out of sync hai)
-            forceCloseModal(modalId);
+        document.getElementById(modalId).classList.remove('active'); 
+        document.body.classList.remove('modal-open'); 
+        const vid = document.querySelector(`#${modalId} video`);
+        if (vid) {
+            vid.pause();
         }
     }
     
@@ -1859,15 +1818,15 @@
         const inputU = btoa(u); const inputP = btoa(p);
         const validU = window.siteConfig.adminAuth?.u || defaultAdminConfig.adminAuth.u; const validP = window.siteConfig.adminAuth?.p || defaultAdminConfig.adminAuth.p;
         if (inputU === validU && inputP === validP) {
-            document.getElementById('adminError').classList.remove('show'); window.closeModal('adminLoginModal');
-            document.getElementById('adminUser').value = ''; document.getElementById('adminPass').value = ''; openAdminPanel();
+            document.getElementById('adminError').classList.remove('show'); 
+            window.closeModal('adminLoginModal', true); // Force close visually
+            history.replaceState({ modal: 'adminPanelModal', type: 'modal' }, document.title, window.location.href);
+            document.getElementById('adminUser').value = ''; document.getElementById('adminPass').value = ''; 
+            openAdminPanel(true);
         } else { document.getElementById('adminError').classList.add('show'); }
     }
 
-    function openAdminPanel() {
-        // Admin panel is also handled by standard modal logic
-        window.openModal('adminPanelModal');
-
+    function openAdminPanel(isReplaced = false) {
         const validU = window.siteConfig.adminAuth?.u || defaultAdminConfig.adminAuth.u;
         document.getElementById('adminSetUser').placeholder = "Current: " + atob(validU); document.getElementById('adminSetUser').value = ""; document.getElementById('adminSetPass').value = "";
         
@@ -1911,7 +1870,7 @@
         document.getElementById('adminContentShipping').value = window.siteConfig.policies.contentShipping || defaultAdminConfig.policies.contentShipping;
         document.getElementById('adminContentContact').value = window.siteConfig.policies.contentContact || defaultAdminConfig.policies.contentContact;
         
-        window.renderAdminRzpLinksList(); window.renderAdminPacksList();
+        window.renderAdminRzpLinksList(); window.renderAdminPacksList(); window.openModal('adminPanelModal', isReplaced);
     }
 
     // --- Razorpay Global Links List Render ---
@@ -2055,8 +2014,7 @@
             btn.disabled = false;
             
             // Re-render everything with defaults
-            window.closeModal('adminPanelModal'); // close first to clean
-            setTimeout(() => { openAdminPanel(); }, 100); 
+            openAdminPanel(); 
             window.applyUISettings(); 
             window.renderSitePacks(); 
             window.injectDynamicStatusUI();
@@ -2153,20 +2111,48 @@
         }, 1500);
     }
 
-    // HISTORY API: Show Step - Push normal state
-    function showStep(step, isPopState = false){
-      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-      document.getElementById(`step${step}`).classList.add('active'); currentStep = step; updateProgress();
-      
-      if (!isPopState) {
-          history.pushState({ type: 'step', id: step }, '', '#step' + step);
-      }
-      
-      const progressWrap = document.querySelector('.progress-wrap');
-      if (progressWrap) {
-          const offset = progressWrap.getBoundingClientRect().top + window.scrollY - 20;
-          window.scrollTo({ top: offset, behavior: 'smooth' });
-      }
+    window.renderSitePacks = function() {
+        const trialGrid = document.getElementById('trialPacksGrid'); const bulkGrid = document.getElementById('bulkPacksGrid');
+        if(!trialGrid || !bulkGrid) return;
+        trialGrid.innerHTML = ''; bulkGrid.innerHTML = '';
+        if(window.siteConfig.trialPacks) {
+            window.siteConfig.trialPacks.forEach(pack => {
+                trialGrid.innerHTML += `
+                  <div class="pack-card" data-uc="${pack.uc}" data-price="${pack.price}" data-rzplinks="${encodeURIComponent(JSON.stringify(pack.rzpLinks || []))}">
+                    <div class="pack-uc"><img src="uc-logo.webp" class="uc-icon" draggable="false"> ${pack.uc} UC</div>
+                    <div class="pack-price">₹${pack.price}</div>
+                  </div>`;
+            });
+        }
+        if(window.siteConfig.bulkPacks) {
+            window.siteConfig.bulkPacks.forEach(pack => {
+                bulkGrid.innerHTML += `
+                  <div class="pack-card" data-uc="${pack.uc}" data-price="${pack.price}" data-rzplinks="${encodeURIComponent(JSON.stringify(pack.rzpLinks || []))}">
+                    <div class="pack-uc"><img src="uc-logo.webp" class="uc-icon" draggable="false"> ${pack.uc} UC</div>
+                    <div class="pack-price">₹${pack.price}</div>
+                  </div>`;
+            });
+        }
+        attachPackListeners();
+    }
+
+    function attachPackListeners() {
+        document.querySelectorAll('.pack-card').forEach(card => {
+            card.addEventListener('click', function(){
+                if(this.classList.contains('purchased')) return; triggerHaptic('light');
+                document.querySelectorAll('.pack-card').forEach(c => { c.classList.remove('selected'); c.querySelector('.check-mark')?.remove(); });
+                this.classList.add('selected');
+                const checkMark = document.createElement('div'); checkMark.className = 'check-mark'; checkMark.innerHTML = '<i class="fa-solid fa-check"></i>';
+                this.appendChild(checkMark);
+                
+                selectedPack = { 
+                    uc: this.dataset.uc, 
+                    price: this.dataset.price, 
+                    rzpLinks: JSON.parse(decodeURIComponent(this.dataset.rzplinks)) 
+                };
+                document.getElementById('next2').disabled = false;
+            });
+        });
     }
 
     function initParticles(){
@@ -2193,9 +2179,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // HISTORY API: Initial push on load
-      history.replaceState({ type: 'step', id: 1 }, '', '#step1');
-
+      history.replaceState({ step: 1, type: 'step' }, document.title, window.location.href);
       initParticles(); window.applyUISettings(); window.renderSitePacks(); document.getElementById('next1').disabled = true;
       setTimeout(hideInitialLoader, 2500);
     });
@@ -2246,6 +2230,21 @@
 
     function triggerHaptic(type='light'){ if(!navigator.vibrate) return; const patterns = { light:[10], medium:[20], heavy:[30], success:[10,20,10] }; navigator.vibrate(patterns[type] || [10]); }
     function generateOrderId(){ return `UCF-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random()*900)}`; }
+
+    function showStep(step, isBack = false){
+      if (!isBack && step !== currentStep) {
+          history.pushState({ step: step, type: 'step' }, document.title, window.location.href);
+      }
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById(`step${step}`).classList.add('active'); currentStep = step; updateProgress();
+      
+      // Auto-scroll logic: scrolls the window just above the progress bar so the new step is perfectly in view.
+      const progressWrap = document.querySelector('.progress-wrap');
+      if (progressWrap) {
+          const offset = progressWrap.getBoundingClientRect().top + window.scrollY - 20;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+      }
+    }
 
     function updateProgress(){
       const steps = document.querySelectorAll('.progress-step');
@@ -2315,13 +2314,13 @@
         btn.innerHTML = originalText; btn.disabled = false; showStep(2);
     };
 
-    document.getElementById('backToDetails').onclick = () => showStep(1);
+    document.getElementById('backToDetails').onclick = () => history.back();
 
     // --- LOCK WAIT UI LOGIC ---
     window.cancelLockWait = function() {
         if(lockWaitTimer) clearInterval(lockWaitTimer);
         document.getElementById('lockUI').style.display = 'none';
-        showStep(2);
+        history.back();
     }
     
     window.checkLockAgain = function() {
@@ -2420,7 +2419,7 @@
       // Release lock if going back
       if(typeof window.releaseLock === 'function') { window.releaseLock(exactPriceStr); }
       
-      window.injectDynamicStatusUI(); showStep(2);
+      window.injectDynamicStatusUI(); history.back();
     };
 
     function startPaymentVerification(amountToCheck) {
@@ -2515,6 +2514,41 @@
             if(percentage >= 80 && percentage < 99) msg.textContent = "Finalizing Transaction...";
         }, 1000);
     }
+    
+    // HISTORY POPSTATE LISTENER
+    window.addEventListener('popstate', function(event) {
+        const state = event.state;
+
+        // Step 3 Cleanup if moving back FROM step 3
+        if (currentStep === 3 && (!state || state.step !== 3)) {
+            if(qrTimer) clearInterval(qrTimer);
+            if(paymentVerificationInterval) clearInterval(paymentVerificationInterval);
+            if(typeof window.releaseLock === 'function') { window.releaseLock(exactPriceStr); }
+            window.injectDynamicStatusUI();
+            document.getElementById('lockUI').style.display = 'none';
+        }
+
+        // Always forcefully close any open modals visually without pushing history
+        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+            modal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            const vid = modal.querySelector(`video`);
+            if (vid) vid.pause();
+        });
+
+        if (state) {
+            if (state.type === 'step') {
+                showStep(state.step, true);
+            } else if (state.type === 'modal') {
+                window.openModal(state.modal, true);
+            }
+        } else {
+            if (currentStep > 1) {
+                showStep(1, true);
+            }
+        }
+    });
+
   </script>
 </body>
 </html>
