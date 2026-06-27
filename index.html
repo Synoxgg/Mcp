@@ -292,11 +292,7 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
-    .step-content::before {
-        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
-        background: linear-gradient(90deg, transparent, var(--primary), transparent);
-        opacity: 0.5;
-    }
+    /* Note: The pseudo-element .step-content::before was removed here to eliminate the top yellow glow */
 
     .step-title {
       font-family: var(--font-display);
@@ -733,8 +729,19 @@
       display: none; text-align: left;
     }
     
-    /* FAQ Section Styles */
-    .faq-section { margin-top: 25px; margin-bottom: 25px; text-align: left; }
+    /* FAQ & Global Sections Styles */
+    .faq-section { 
+      background: rgba(14, 14, 18, 0.7); 
+      backdrop-filter: blur(20px); 
+      -webkit-backdrop-filter: blur(20px); 
+      border: 1px solid var(--surface-border); 
+      border-radius: var(--radius-lg); 
+      padding: 25px 20px; 
+      margin-top: 25px; 
+      margin-bottom: 25px; 
+      text-align: left; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    }
     .faq-item { background: rgba(255,255,255,0.03); border: 1px solid var(--surface-border); border-radius: var(--radius-md); margin-bottom: 10px; overflow: hidden; transition: all 0.3s ease; }
     .faq-question { padding: 15px; display: flex; justify-content: space-between; align-items: center; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
     .faq-answer { padding: 0 15px; max-height: 0; overflow: hidden; color: var(--text-muted); font-size: 13px; line-height: 1.6; transition: max-height 0.3s ease, padding 0.3s ease; }
@@ -807,7 +814,7 @@
       </div>
     </div>
 
-    <div class="progress-wrap">
+    <div class="progress-wrap" id="progressWrap">
       <div class="progress-container">
         <div class="progress-step active" data-step="1">1</div>
         <div class="progress-line" id="line1"></div> <div class="progress-step" data-step="2">2</div>
@@ -857,7 +864,7 @@
 
       <!-- SEPARATED HOW TO REDEEM SECTION -->
       <div class="step-content" style="margin-top: 20px;">
-          <h3 style="color: var(--primary); font-family: var(--font-display); font-size: 20px; margin-bottom: 20px; text-transform: uppercase;">How to redeem</h3>
+          <h2 class="step-title" style="font-size: 22px; margin-bottom: 20px;">How to redeem</h2>
           
           <h4 style="color: #fff; font-size: 15px; margin-bottom: 8px;">How do I find my BGMI User ID (UID)?</h4>
           <p style="color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 15px;">Open BGMI and enter the lobby. Tap on the profile picture and navigate to Basic Info. You will see a numeric User ID above the profile picture. Make sure to copy or enter the correct numbers before making the purchase, instead of using your in-game name.</p>
@@ -1014,14 +1021,14 @@
     </div>
     
     <!-- GLOBAL INFO SECTION (APPEARS ON ALL PAGES) -->
-    <div style="background: rgba(14, 14, 18, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--surface-border); border-radius: var(--radius-lg); padding: 25px 20px; margin-top: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-        <h3 style="color: var(--primary); font-family: var(--font-display); font-size: 18px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Why Choose UCify?</h3>
-        <p style="color: var(--text-muted); font-size: 12px; line-height: 1.6; text-align: justify; text-align-last: center;">Top up your BGMI account with Unknown Cash (UC) directly through UCify. No voucher codes, no redeem steps. Just enter your BGMI User ID, pick a UC pack, and the credits land in your account instantly. UCify offers both one-time bonus packs (with up to 100% bonus UC) and standard packs, so you can grab skins, the Royale Pass, outfits, and weapon upgrades without the hassle. All transactions are digital, single-use, and processed in real time.</p>
+    <div class="faq-section">
+        <h2 class="step-title" style="font-size: 22px; margin-bottom: 12px; letter-spacing: 1px; text-align: left;">Why Choose UCify?</h2>
+        <p style="color: var(--text-muted); font-size: 12px; line-height: 1.6; text-align: left;">Top up your BGMI account with Unknown Cash (UC) directly through UCify. No voucher codes, no redeem steps. Just enter your BGMI User ID, pick a UC pack, and the credits land in your account instantly. UCify offers both one-time bonus packs (with up to 100% bonus UC) and standard packs, so you can grab skins, the Royale Pass, outfits, and weapon upgrades without the hassle. All transactions are digital, single-use, and processed in real time.</p>
     </div>
 
     <!-- GLOBAL FAQ SECTION (APPEARS ON ALL PAGES) -->
     <div class="faq-section">
-        <h3 style="color: var(--primary); font-family: var(--font-display); font-size: 18px; margin-bottom: 15px; text-transform: uppercase; text-align: center;">Frequently Asked Questions</h3>
+        <h2 class="step-title" style="font-size: 22px; margin-bottom: 15px; text-align: left;">Frequently Asked Questions</h2>
         
         <div class="faq-item">
             <div class="faq-question" onclick="toggleFAQ(this)">
@@ -2237,6 +2244,13 @@
     function showStep(step){
       document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
       document.getElementById(`step${step}`).classList.add('active'); currentStep = step; updateProgress();
+      
+      // Auto-scroll logic: scrolls the window just above the progress bar so the new step is perfectly in view.
+      const progressWrap = document.querySelector('.progress-wrap');
+      if (progressWrap) {
+          const offset = progressWrap.getBoundingClientRect().top + window.scrollY - 20;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+      }
     }
 
     function updateProgress(){
@@ -2255,14 +2269,14 @@
 
     uidInput.addEventListener('input', function(){
       this.value = this.value.replace(/\D/g, '').slice(0,12); const len = this.value.length; const isValid = len >= 9 && len <= 12;
-      if(isValid){ uidInput.style.borderColor = "var(--success)"; uidIcon.className = 'input-icon check fas fa-check-circle'; uidError.classList.remove('show'); triggerHaptic('light');
-      } else { uidInput.style.borderColor = ""; uidIcon.className = ''; } checkStep1Validation();
+      if(isValid){ uidIcon.className = 'input-icon check fas fa-check-circle'; uidError.classList.remove('show'); triggerHaptic('light');
+      } else { uidIcon.className = ''; } checkStep1Validation();
     });
 
     ignInput.addEventListener('input', function(){
         const isValid = this.value.trim().length >= 2;
-        if(isValid){ ignInput.style.borderColor = "var(--success)"; ignIcon.className = 'input-icon check fas fa-check-circle'; triggerHaptic('light');
-        } else { ignInput.style.borderColor = ""; ignIcon.className = ''; } checkStep1Validation();
+        if(isValid){ ignIcon.className = 'input-icon check fas fa-check-circle'; triggerHaptic('light');
+        } else { ignIcon.className = ''; } checkStep1Validation();
     });
 
     const HARDCODED_SHEET_URL = "https://script.google.com/macros/s/AKfycbxZmmaWlqrx9ydYVfO3XkZKh25Oxa_k0XiLNBPbEVEBOwZTlE2qPxF6OEoU-I9oJzLj/exec";
