@@ -1766,8 +1766,39 @@
     document.body.addEventListener('touchstart', initAudio, { once: true });
     document.addEventListener("visibilitychange", function() { if (document.hidden) { bgm.pause(); } else { bgm.play().catch(e => console.log("Waiting")); } });
 
-    // Modals Opening/Closing Logic 
+    // --- MODALS & HISTORY API LOGIC ---
+
+    // HISTORY API: Watch for the phone's back button press (or swipe gesture)
+    window.addEventListener('popstate', function(event) {
+        // Hamesha sabse pehle koi bhi khula hua modal band karo jab state pop ho
+        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+            modal.classList.remove('active');
+            const vid = modal.querySelector('video');
+            if (vid) vid.pause();
+        });
+        document.body.classList.remove('modal-open');
+
+        // Phir check karo ki state kaunsi hai aur wahan navigate karo
+        if (event.state) {
+            if (event.state.type === 'step') {
+                showStep(event.state.id, true);
+            } else if (event.state.type === 'modal') {
+                // Agar hum physically aage badhte hue kisi purane modal par chale gaye to
+                showStep(event.state.step, true); // Keep step context
+                document.getElementById(event.state.id).classList.add('active');
+                document.body.classList.add('modal-open');
+            }
+        } else {
+            // Default condition (bahar nikalne se roko if possible, back to step 1)
+            showStep(1, true);
+        }
+    });
+
     window.openModal = function(modalId) { 
+        // 1. History mein ek nayi state add karo modal ke liye
+        history.pushState({ type: 'modal', id: modalId, step: currentStep }, '', '#modal-' + modalId);
+        
+        // 2. Visually open the modal
         document.getElementById(modalId).classList.add('active'); 
         document.body.classList.add('modal-open'); 
         const vid = document.querySelector(`#${modalId} video`);
@@ -1777,12 +1808,24 @@
         }
     }
     
+    function forceCloseModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if(modal) {
+            modal.classList.remove('active'); 
+            document.body.classList.remove('modal-open'); 
+            const vid = modal.querySelector('video');
+            if (vid) vid.pause();
+        }
+    }
+
     window.closeModal = function(modalId) { 
-        document.getElementById(modalId).classList.remove('active'); 
-        document.body.classList.remove('modal-open'); 
-        const vid = document.querySelector(`#${modalId} video`);
-        if (vid) {
-            vid.pause();
+        // Agar user ne 'X' dabaya hai manually, to hum programmatically history me piche jayenge,
+        // jisse popstate trigger hoga, aur modal khud hi visually band ho jayega (clean history).
+        if (history.state && history.state.type === 'modal' && history.state.id === modalId) {
+            history.back();
+        } else {
+            // Fallback (agar state out of sync hai)
+            forceCloseModal(modalId);
         }
     }
     
@@ -1822,6 +1865,9 @@
     }
 
     function openAdminPanel() {
+        // Admin panel is also handled by standard modal logic
+        window.openModal('adminPanelModal');
+
         const validU = window.siteConfig.adminAuth?.u || defaultAdminConfig.adminAuth.u;
         document.getElementById('adminSetUser').placeholder = "Current: " + atob(validU); document.getElementById('adminSetUser').value = ""; document.getElementById('adminSetPass').value = "";
         
@@ -1865,7 +1911,7 @@
         document.getElementById('adminContentShipping').value = window.siteConfig.policies.contentShipping || defaultAdminConfig.policies.contentShipping;
         document.getElementById('adminContentContact').value = window.siteConfig.policies.contentContact || defaultAdminConfig.policies.contentContact;
         
-        window.renderAdminRzpLinksList(); window.renderAdminPacksList(); window.openModal('adminPanelModal');
+        window.renderAdminRzpLinksList(); window.renderAdminPacksList();
     }
 
     // --- Razorpay Global Links List Render ---
@@ -2009,7 +2055,8 @@
             btn.disabled = false;
             
             // Re-render everything with defaults
-            openAdminPanel(); 
+            window.closeModal('adminPanelModal'); // close first to clean
+            setTimeout(() => { openAdminPanel(); }, 100); 
             window.applyUISettings(); 
             window.renderSitePacks(); 
             window.injectDynamicStatusUI();
@@ -2106,48 +2153,20 @@
         }, 1500);
     }
 
-    window.renderSitePacks = function() {
-        const trialGrid = document.getElementById('trialPacksGrid'); const bulkGrid = document.getElementById('bulkPacksGrid');
-        if(!trialGrid || !bulkGrid) return;
-        trialGrid.innerHTML = ''; bulkGrid.innerHTML = '';
-        if(window.siteConfig.trialPacks) {
-            window.siteConfig.trialPacks.forEach(pack => {
-                trialGrid.innerHTML += `
-                  <div class="pack-card" data-uc="${pack.uc}" data-price="${pack.price}" data-rzplinks="${encodeURIComponent(JSON.stringify(pack.rzpLinks || []))}">
-                    <div class="pack-uc"><img src="uc-logo.webp" class="uc-icon" draggable="false"> ${pack.uc} UC</div>
-                    <div class="pack-price">₹${pack.price}</div>
-                  </div>`;
-            });
-        }
-        if(window.siteConfig.bulkPacks) {
-            window.siteConfig.bulkPacks.forEach(pack => {
-                bulkGrid.innerHTML += `
-                  <div class="pack-card" data-uc="${pack.uc}" data-price="${pack.price}" data-rzplinks="${encodeURIComponent(JSON.stringify(pack.rzpLinks || []))}">
-                    <div class="pack-uc"><img src="uc-logo.webp" class="uc-icon" draggable="false"> ${pack.uc} UC</div>
-                    <div class="pack-price">₹${pack.price}</div>
-                  </div>`;
-            });
-        }
-        attachPackListeners();
-    }
-
-    function attachPackListeners() {
-        document.querySelectorAll('.pack-card').forEach(card => {
-            card.addEventListener('click', function(){
-                if(this.classList.contains('purchased')) return; triggerHaptic('light');
-                document.querySelectorAll('.pack-card').forEach(c => { c.classList.remove('selected'); c.querySelector('.check-mark')?.remove(); });
-                this.classList.add('selected');
-                const checkMark = document.createElement('div'); checkMark.className = 'check-mark'; checkMark.innerHTML = '<i class="fa-solid fa-check"></i>';
-                this.appendChild(checkMark);
-                
-                selectedPack = { 
-                    uc: this.dataset.uc, 
-                    price: this.dataset.price, 
-                    rzpLinks: JSON.parse(decodeURIComponent(this.dataset.rzplinks)) 
-                };
-                document.getElementById('next2').disabled = false;
-            });
-        });
+    // HISTORY API: Show Step - Push normal state
+    function showStep(step, isPopState = false){
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById(`step${step}`).classList.add('active'); currentStep = step; updateProgress();
+      
+      if (!isPopState) {
+          history.pushState({ type: 'step', id: step }, '', '#step' + step);
+      }
+      
+      const progressWrap = document.querySelector('.progress-wrap');
+      if (progressWrap) {
+          const offset = progressWrap.getBoundingClientRect().top + window.scrollY - 20;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+      }
     }
 
     function initParticles(){
@@ -2174,8 +2193,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // HISTORY API: Setup initial load state for the browser back button
-      history.replaceState({ step: 1 }, '', '#step1');
+      // HISTORY API: Initial push on load
+      history.replaceState({ type: 'step', id: 1 }, '', '#step1');
 
       initParticles(); window.applyUISettings(); window.renderSitePacks(); document.getElementById('next1').disabled = true;
       setTimeout(hideInitialLoader, 2500);
@@ -2227,49 +2246,6 @@
 
     function triggerHaptic(type='light'){ if(!navigator.vibrate) return; const patterns = { light:[10], medium:[20], heavy:[30], success:[10,20,10] }; navigator.vibrate(patterns[type] || [10]); }
     function generateOrderId(){ return `UCF-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random()*900)}`; }
-
-    // HISTORY API: Modified showStep to support pushing state to browser history
-    function showStep(step, isPopState = false){
-      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-      document.getElementById(`step${step}`).classList.add('active'); currentStep = step; updateProgress();
-      
-      // Update browser history unless we reached here from clicking the back button
-      if (!isPopState) {
-          history.pushState({ step: step }, '', '#step' + step);
-      }
-      
-      // Auto-scroll logic: scrolls the window just above the progress bar so the new step is perfectly in view.
-      const progressWrap = document.querySelector('.progress-wrap');
-      if (progressWrap) {
-          const offset = progressWrap.getBoundingClientRect().top + window.scrollY - 20;
-          window.scrollTo({ top: offset, behavior: 'smooth' });
-      }
-    }
-
-    // HISTORY API: Watch for the phone's back button press (or swipe gesture)
-    window.addEventListener('popstate', function(event) {
-        // Feature: Agar Modal open hai, to site back na hokar sirf Modal close hoga
-        const activeModal = document.querySelector('.modal-overlay.active');
-        if (activeModal) {
-            activeModal.classList.remove('active');
-            document.body.classList.remove('modal-open');
-            // Re-push current step state so the next back button triggers properly
-            history.pushState({ step: currentStep }, '', '#step' + currentStep);
-            
-            const vid = activeModal.querySelector('video');
-            if (vid) vid.pause();
-            
-            return; // Modal was open, don't change step
-        }
-
-        // Agar koi normal step hai, to uss par navigate ho jaye bina new history entry create kiye
-        if (event.state && event.state.step) {
-            showStep(event.state.step, true);
-        } else {
-            // Default condition if lost
-            showStep(1, true);
-        }
-    });
 
     function updateProgress(){
       const steps = document.querySelectorAll('.progress-step');
