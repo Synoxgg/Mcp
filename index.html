@@ -540,6 +540,11 @@
       font-size: 24px; color: var(--primary); font-family: var(--font-display); font-weight: bold; margin: 10px 0; letter-spacing: 2px;
     }
 
+    /* --- NORMAL PAYMENT UI --- */
+    #normalPaymentUI {
+      /* Base styles handled globally */
+    }
+
     /* --- SUCCESS (STEP 4) --- */
     .success-screen { text-align: center; }
     .success-icon { 
@@ -2169,6 +2174,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // HISTORY API: Setup initial load state for the browser back button
+      history.replaceState({ step: 1 }, '', '#step1');
+
       initParticles(); window.applyUISettings(); window.renderSitePacks(); document.getElementById('next1').disabled = true;
       setTimeout(hideInitialLoader, 2500);
     });
@@ -2220,9 +2228,15 @@
     function triggerHaptic(type='light'){ if(!navigator.vibrate) return; const patterns = { light:[10], medium:[20], heavy:[30], success:[10,20,10] }; navigator.vibrate(patterns[type] || [10]); }
     function generateOrderId(){ return `UCF-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random()*900)}`; }
 
-    function showStep(step){
+    // HISTORY API: Modified showStep to support pushing state to browser history
+    function showStep(step, isPopState = false){
       document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
       document.getElementById(`step${step}`).classList.add('active'); currentStep = step; updateProgress();
+      
+      // Update browser history unless we reached here from clicking the back button
+      if (!isPopState) {
+          history.pushState({ step: step }, '', '#step' + step);
+      }
       
       // Auto-scroll logic: scrolls the window just above the progress bar so the new step is perfectly in view.
       const progressWrap = document.querySelector('.progress-wrap');
@@ -2231,6 +2245,31 @@
           window.scrollTo({ top: offset, behavior: 'smooth' });
       }
     }
+
+    // HISTORY API: Watch for the phone's back button press (or swipe gesture)
+    window.addEventListener('popstate', function(event) {
+        // Feature: Agar Modal open hai, to site back na hokar sirf Modal close hoga
+        const activeModal = document.querySelector('.modal-overlay.active');
+        if (activeModal) {
+            activeModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            // Re-push current step state so the next back button triggers properly
+            history.pushState({ step: currentStep }, '', '#step' + currentStep);
+            
+            const vid = activeModal.querySelector('video');
+            if (vid) vid.pause();
+            
+            return; // Modal was open, don't change step
+        }
+
+        // Agar koi normal step hai, to uss par navigate ho jaye bina new history entry create kiye
+        if (event.state && event.state.step) {
+            showStep(event.state.step, true);
+        } else {
+            // Default condition if lost
+            showStep(1, true);
+        }
+    });
 
     function updateProgress(){
       const steps = document.querySelectorAll('.progress-step');
