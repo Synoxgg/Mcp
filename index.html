@@ -2179,6 +2179,10 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // PREVENT BROWSER FROM JUMPING TO OLD SCROLL POSITIONS AUTOMATICALLY
+      if ('scrollRestoration' in history) {
+          history.scrollRestoration = 'manual';
+      }
       history.replaceState({ step: 1, type: 'step' }, document.title, window.location.href);
       initParticles(); window.applyUISettings(); window.renderSitePacks(); document.getElementById('next1').disabled = true;
       setTimeout(hideInitialLoader, 2500);
@@ -2238,12 +2242,14 @@
       document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
       document.getElementById(`step${step}`).classList.add('active'); currentStep = step; updateProgress();
       
-      // Auto-scroll logic: scrolls the window just above the progress bar so the new step is perfectly in view.
-      const progressWrap = document.querySelector('.progress-wrap');
-      if (progressWrap) {
-          const offset = progressWrap.getBoundingClientRect().top + window.scrollY - 20;
-          window.scrollTo({ top: offset, behavior: 'smooth' });
-      }
+      // Auto-scroll logic inside setTimeout to override browser's default scroll restoration 
+      setTimeout(() => {
+          const progressWrap = document.querySelector('.progress-wrap');
+          if (progressWrap) {
+              const offset = progressWrap.getBoundingClientRect().top + window.scrollY - 20;
+              window.scrollTo({ top: offset, behavior: 'smooth' });
+          }
+      }, 50);
     }
 
     function updateProgress(){
