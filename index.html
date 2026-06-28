@@ -499,20 +499,25 @@
     /* --- PAYMENT SECTION (STEP 3) --- */
     .payment-section { text-align: center; }
     
-    .qr-card {
-      background: #000;
-      padding: 20px;
+    /* Pay Now Image Button Styling */
+    .pay-now-img {
+      width: 100%;
+      display: block;
       border-radius: var(--radius-md);
+      cursor: pointer;
+      pointer-events: auto; /* Required to override global img unclickable behavior */
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       border: 1px solid var(--surface-border);
-      margin: 15px 0;
+      transition: all 0.2s ease;
+    }
+    .pay-now-img:active {
+      transform: scale(0.98);
     }
 
     /* Verification Box Styles */
     .auto-verify-box {
       margin-top: 20px; 
       padding: 15px; 
-      background: rgba(0, 224, 255, 0.05); 
-      border: 1px solid rgba(0, 224, 255, 0.2); 
       border-radius: var(--radius-md); 
       text-align: center;
       transition: all 0.3s ease;
@@ -951,21 +956,19 @@
                <i class="fa-solid fa-triangle-exclamation"></i> <strong id="dispWarnTitle">Limit Warning:</strong> <span id="dispWarnDesc">Personal UPI limits often fail for amounts over ₹2000.</span>
             </div>
 
-            <!-- RAZORPAY CARD -->
-            <div class="qr-card" id="razorpayCard" style="display:none; text-align:center; padding: 30px 20px;">
-               <div style="color:#fff; font-weight:700; font-size: 18px; margin-bottom:15px;">Secure Payment</div>
-               <button class="btn btn-primary" id="rzpRedirectBtn" style="background:#3399cc; color:#fff; box-shadow: 0 5px 15px rgba(51, 153, 204, 0.4);">
-                  Pay Now <i class="fas fa-external-link-alt" style="margin-left: 5px;"></i>
-               </button>
-               <div style="font-size:12px; color:#aaa; margin-top:15px; line-height: 1.4;">
-                  Clicking "Pay Now" will securely open the payment page.<br>
-                  <strong style="color:var(--primary);">Amount (₹<span id="rzpExactAmountText"></span>) will be auto-filled.</strong>
+            <!-- PAY NOW IMAGE BUTTON (Replaced Old Tile) -->
+            <div id="razorpayCard" style="display:none; text-align:center; margin: 20px 0;">
+               <img src="pay-now.webp" alt="Pay Now" id="rzpRedirectBtn" class="pay-now-img" draggable="false">
+               <div style="font-size: 14px; color: var(--text-muted); margin-top: 15px; font-weight: 600;">
+                  Click pay now to complete your transaction.
                </div>
+               <!-- Hidden span to keep JS error free -->
+               <span id="rzpExactAmountText" style="display:none;"></span>
             </div>
 
             <!-- Automated Verification UI Container -->
             <div id="verificationStatus" class="auto-verify-box">
-                <!-- Inner HTML is injected dynamically via JS using siteConfig -->
+                <!-- Inner HTML is injected dynamically via JS -->
             </div>
 
           </div>
@@ -1124,7 +1127,6 @@
       </div>
       <div class="modal-body">
         <p style="color: #ccc; font-size: 14px; margin-bottom: 15px; text-align: center;">Enter player details to verify account.</p>
-        <!-- Added background: #000 and object-fit: contain to prevent blurred paddings from the browser -->
         <video src="bgmi-player-details-info.mp4" autoplay loop muted playsinline style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); box-shadow: 0 4px 15px rgba(0,0,0,0.5); background-color: #000; object-fit: contain;"></video>
       </div>
     </div>
@@ -1583,7 +1585,7 @@
             step1Title: "Player Details",
             step2Title: "UC PACKS",
             step3Title: "Payment",
-            step3Subnote: "Complete your transaction.", /* Changed here */
+            step3Subnote: "Complete your transaction.",
             totalPayable: "TOTAL PAYABLE (EXACT)",
             warnTitle: "Limit Warning:",
             warnDesc: "Personal UPI limits often fail for amounts over ₹2000.",
@@ -1610,7 +1612,7 @@
             showStep3Subnote: true, showTotalPayable: true, showWarnBanner: true, showAwaitingStatus: true,
             showCancelBtn: true, showSuccessTitle: true, showReceipt: true,
             showPartnerLogo: true, showSocialProof: true, showFooterKrafton: true,
-            enableNightMode: false /* Changed from true to false */
+            enableNightMode: false 
         },
         policies: {
             showTerms: true, contentTerms: "<p>BGMI UC purchased through UCify is delivered directly to the BGMI account associated with the User ID provided at the time of purchase. UCify is not responsible for incorrect User IDs entered by the buyer.</p><p>All purchases are final and non-refundable once UC has been credited to the recipient's BGMI account.</p><p>One-time offer packs are limited to a single purchase per BGMI User ID. Attempting to repurchase will not be processed.</p><p>UC delivery timelines are typically instant but may take up to 24 hours depending on server load and payment confirmation.</p><p>Pricing, bonus UC amounts, and offer availability are subject to change without prior notice and are determined by KRAFTON and UCify.</p><p>UC can only be used within BGMI for in-game purchases (Royale Pass, outfits, skins, crates, etc.) and holds no real-world monetary value. UC cannot be withdrawn, exchanged, or transferred outside the game.</p><p>UCify acts as an authorized distribution channel. All UC usage within BGMI is governed by KRAFTON's terms of service and BGMI's end-user license agreement.</p><p>For any disputes or delivery issues, contact Swag support within 7 days of purchase with your order ID and transaction details.</p><p>By completing a purchase, you confirm that you agree to these terms and UCify's general terms of service.</p>",
@@ -1766,15 +1768,15 @@
         const vStatus = document.getElementById('verificationStatus');
         if(!vStatus || vStatus.style.background === "rgba(0, 255, 157, 0.1)") return; 
         
-        let descHtml = `Please complete your payment securely.<br>${getText('awaitingDesc2')}`;
-
-        vStatus.style.background = "rgba(0, 224, 255, 0.05)";
-        vStatus.style.borderColor = "rgba(0, 224, 255, 0.2)";
+        vStatus.style.background = "linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.4) 100%)";
+        vStatus.style.borderColor = "var(--surface-border)";
+        vStatus.style.boxShadow = "0 10px 20px rgba(0,0,0,0.3)";
         vStatus.innerHTML = `
-            <i class="fas fa-circle-notch fa-spin" style="color: var(--accent); font-size: 28px; margin-bottom: 12px;"></i>
-            <div style="font-family: var(--font-display); font-weight: 700; color: #fff; font-size: 18px; letter-spacing: 1px;">${getText('awaitingTitle')}</div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">
-                ${descHtml}
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 5px 0;">
+                <i class="fas fa-circle-notch fa-spin" style="color: var(--primary); font-size: 22px;"></i>
+                <div style="font-family: var(--font-display); font-weight: 700; color: #fff; font-size: 18px; letter-spacing: 1px; margin-top: 2px;">
+                    ${getText('awaitingTitle')}
+                </div>
             </div>
         `;
     }
@@ -2501,9 +2503,10 @@
         const vStatus = document.getElementById('verificationStatus');
         vStatus.style.background = "rgba(0, 255, 157, 0.1)"; vStatus.style.borderColor = "var(--success)";
         vStatus.innerHTML = `
-            <i class="fas fa-check-circle" style="color: var(--success); font-size: 32px; margin-bottom: 12px; animation: popIn 0.5s ease;"></i>
-            <div style="font-family: var(--font-display); font-weight: 700; color: #fff; font-size: 18px;">Payment Auto-Verified!</div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Processing your order...</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 5px 0;">
+                <i class="fas fa-check-circle" style="color: var(--success); font-size: 22px; animation: popIn 0.5s ease;"></i>
+                <div style="font-family: var(--font-display); font-weight: 700; color: #fff; font-size: 18px; margin-top: 2px;">Payment Auto-Verified!</div>
+            </div>
         `;
         triggerHaptic('success');
         
