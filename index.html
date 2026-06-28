@@ -1684,6 +1684,7 @@
     let razorpayWindow = null; 
     let qrTimer = null;
     let paymentVerificationInterval = null;
+    let visibilityCheckFunc = null; // Stored to prevent multiple listeners
     let timerSeconds = 120;
     let lockWaitTimer = null;
     let currentUid = "";
@@ -2243,6 +2244,7 @@
         if(timerSeconds <= 0){
             clearInterval(qrTimer);
             if(paymentVerificationInterval) clearInterval(paymentVerificationInterval);
+            if(visibilityCheckFunc) document.removeEventListener("visibilitychange", visibilityCheckFunc);
             // Programmatically go back without toast message
             document.getElementById('back3').click();
         }
@@ -2310,7 +2312,6 @@
     });
 
     const HARDCODED_SHEET_URL = "https://script.google.com/macros/s/AKfycbxZmmaWlqrx9ydYVfO3XkZKh25Oxa_k0XiLNBPbEVEBOwZTlE2qPxF6OEoU-I9oJzLj/exec";
-    const HARDCODED_VERIFY_URL = "https://script.google.com/macros/s/AKfycbzX371w86D2MFAGkpbbpYEm5GIvuXeh9BextRnqSLfzBLENLAaIU07T0Cr0nTPNJutQxg/exec";
     const HARDCODED_WEBHOOK_URL = "https://discord.com/api/webhooks/1516406944481542185/7zyh3P5Mj1tYUDmLQfFGEfTD2KLhE-t6hK4pJA6Kk_TxpbsEPi8QiJaWrcJFmMhWsgki";
 
     async function fetchPurchasedPacks(uid) {
@@ -2362,6 +2363,7 @@
     document.getElementById('backToDetailsStep3').onclick = () => {
         if(qrTimer) clearInterval(qrTimer);
         if(paymentVerificationInterval) clearInterval(paymentVerificationInterval);
+        if(visibilityCheckFunc) document.removeEventListener("visibilitychange", visibilityCheckFunc);
         if(typeof window.releaseLock === 'function') { window.releaseLock(exactPriceStr); }
         history.go(-2); // Take them back to Step 1 directly to edit details
     };
@@ -2469,6 +2471,7 @@
     document.getElementById('back3').onclick = () => {
       if(qrTimer) clearInterval(qrTimer);
       if(paymentVerificationInterval) clearInterval(paymentVerificationInterval);
+      if(visibilityCheckFunc) document.removeEventListener("visibilitychange", visibilityCheckFunc);
       
       // Release lock if going back
       if(typeof window.releaseLock === 'function') { window.releaseLock(exactPriceStr); }
@@ -2478,15 +2481,20 @@
 
     function startPaymentVerification(amountToCheck) {
         if(paymentVerificationInterval) clearInterval(paymentVerificationInterval);
+        if(visibilityCheckFunc) document.removeEventListener("visibilitychange", visibilityCheckFunc);
+
         let verificationApiUrl = window.siteConfig.razorpayApiUrl;
         
-        paymentVerificationInterval = setInterval(async () => {
+        // Verify payment logic function
+        const checkPayment = async () => {
             try {
                 const res = await fetch(`${verificationApiUrl}?amount=${amountToCheck}&t=${Date.now()}`);
                 const data = await res.json();
                 
                 if(data.verified) {
                     clearInterval(paymentVerificationInterval);
+                    if(visibilityCheckFunc) document.removeEventListener("visibilitychange", visibilityCheckFunc);
+                    
                     if(qrTimer) clearInterval(qrTimer);
                     if (razorpayWindow && !razorpayWindow.closed) { razorpayWindow.close(); }
                     
@@ -2496,7 +2504,18 @@
                     processSuccessfulPayment();
                 }
             } catch (err) { console.log("Polling payment status..."); }
-        }, 5000); 
+        };
+
+        // NEW: Instant check when user switches back from their UPI app to browser
+        visibilityCheckFunc = () => {
+            if (document.visibilityState === 'visible') {
+                checkPayment();
+            }
+        };
+        document.addEventListener("visibilitychange", visibilityCheckFunc);
+
+        // Keep standard interval running (incase they do split screen)
+        paymentVerificationInterval = setInterval(checkPayment, 4000); 
     }
 
     async function processSuccessfulPayment() {
@@ -2578,6 +2597,7 @@
         if (currentStep === 3 && (!state || state.step !== 3)) {
             if(qrTimer) clearInterval(qrTimer);
             if(paymentVerificationInterval) clearInterval(paymentVerificationInterval);
+            if(visibilityCheckFunc) document.removeEventListener("visibilitychange", visibilityCheckFunc);
             if(typeof window.releaseLock === 'function') { window.releaseLock(exactPriceStr); }
             window.injectDynamicStatusUI();
             document.getElementById('lockUI').style.display = 'none';
