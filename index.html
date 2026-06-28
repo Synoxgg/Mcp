@@ -311,9 +311,12 @@
       transition: color 0.2s, transform 0.2s;
     }
 
-    .info-icon:hover {
-      color: #fff;
-      transform: scale(1.1);
+    /* Media query to prevent stuck hover state on mobile devices */
+    @media (hover: hover) {
+      .info-icon:hover {
+        color: #fff;
+        transform: scale(1.1);
+      }
     }
 
     .form-input-wrapper { position: relative; }
@@ -920,7 +923,18 @@
 
           <!-- NORMAL PAYMENT UI -->
           <div id="normalPaymentUI">
-            <div style="font-size: 14px; margin-bottom: 5px; color: var(--text-muted);" id="dispTotalPayable">TOTAL PAYABLE (EXACT)</div>
+            <!-- Hidden original total payable text to avoid JS errors, visually removed as requested -->
+            <div id="dispTotalPayable" style="display: none !important;"></div>
+            
+            <!-- NEW UC & USER DETAILS -->
+            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; margin-top: 5px;">
+               <img src="uc-logo.webp" alt="UC" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(255,184,0,0.4));">
+               <div id="step3UcAmount" style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 25px; letter-spacing: 1px;">-- UC</div>
+               
+               <div style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">UC will be Credited to BGMI User:</div>
+               <div id="step3IgnName" style="color: var(--primary); font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: 1px;">--</div>
+            </div>
+
             <div style="font-size: 36px; font-weight: 800; color: var(--primary); font-family: var(--font-display); margin-bottom: 20px; text-shadow: 0 0 20px rgba(255,184,0,0.3);">
               <span id="paymentAmount">₹0</span>
             </div>
@@ -1225,7 +1239,7 @@
 
           <div class="admin-subsection">
               <label style="font-size:12px; color:var(--primary); font-weight:600;">Payment Page Texts</label>
-              <div class="flex-row-center"><input type="checkbox" id="tgl_step3Subnote" class="admin-toggle-box"><input type="text" class="form-input" id="adminTextStep3Subnote" placeholder="Scan & pay..." style="font-size:12px; padding:8px;"></div>
+              <div class="flex-row-center"><input type="checkbox" id="tgl_step3Subnote" class="admin-toggle-box"><input type="text" class="form-input" id="adminTextStep3Subnote" placeholder="Complete your transaction." style="font-size:12px; padding:8px;"></div>
               <div class="flex-row-center"><input type="checkbox" id="tgl_totalPayable" class="admin-toggle-box"><input type="text" class="form-input" id="adminTextTotalPay" placeholder="TOTAL PAYABLE (EXACT)" style="font-size:12px; padding:8px;"></div>
               
               <!-- Warning box -->
@@ -1561,7 +1575,7 @@
             step1Title: "Player Details",
             step2Title: "UC PACKS",
             step3Title: "Payment",
-            step3Subnote: "Scan & pay using any UPI app",
+            step3Subnote: "Complete your transaction.", /* Changed here */
             totalPayable: "TOTAL PAYABLE (EXACT)",
             warnTitle: "Limit Warning:",
             warnDesc: "Personal UPI limits often fail for amounts over ₹2000.",
@@ -1588,7 +1602,7 @@
             showStep3Subnote: true, showTotalPayable: true, showWarnBanner: true, showAwaitingStatus: true,
             showCancelBtn: true, showSuccessTitle: true, showReceipt: true,
             showPartnerLogo: true, showSocialProof: true, showFooterKrafton: true,
-            enableNightMode: true 
+            enableNightMode: false /* Changed from true to false */
         },
         policies: {
             showTerms: true, contentTerms: "<p>BGMI UC purchased through UCify is delivered directly to the BGMI account associated with the User ID provided at the time of purchase. UCify is not responsible for incorrect User IDs entered by the buyer.</p><p>All purchases are final and non-refundable once UC has been credited to the recipient's BGMI account.</p><p>One-time offer packs are limited to a single purchase per BGMI User ID. Attempting to repurchase will not be processed.</p><p>UC delivery timelines are typically instant but may take up to 24 hours depending on server load and payment confirmation.</p><p>Pricing, bonus UC amounts, and offer availability are subject to change without prior notice and are determined by KRAFTON and UCify.</p><p>UC can only be used within BGMI for in-game purchases (Royale Pass, outfits, skins, crates, etc.) and holds no real-world monetary value. UC cannot be withdrawn, exchanged, or transferred outside the game.</p><p>UCify acts as an authorized distribution channel. All UC usage within BGMI is governed by KRAFTON's terms of service and BGMI's end-user license agreement.</p><p>For any disputes or delivery issues, contact Swag support within 7 days of purchase with your order ID and transaction details.</p><p>By completing a purchase, you confirm that you agree to these terms and UCify's general terms of service.</p>",
@@ -1681,7 +1695,11 @@
         document.getElementById('dispStep3Title').textContent = getText('step3Title');
         document.getElementById('dispStep3Subnote').textContent = getText('step3Subnote');
         
-        document.getElementById('dispTotalPayable').textContent = getText('totalPayable');
+        // DispTotalPayable is visually removed from normal UI, but this keeps the Admin system error-free
+        if (document.getElementById('dispTotalPayable')) {
+            document.getElementById('dispTotalPayable').textContent = getText('totalPayable');
+        }
+
         document.getElementById('dispWarnTitle').textContent = getText('warnTitle');
         document.getElementById('dispWarnDesc').textContent = getText('warnDesc');
         document.getElementById('dispCancelBtn').textContent = getText('cancelBtn');
@@ -1711,7 +1729,6 @@
         document.getElementById('dispStep3Title').style.display = getTgl('showStep3Title') ? 'block' : 'none';
         document.getElementById('dispStep3Subnote').style.display = getTgl('showStep3Subnote') ? 'block' : 'none';
         
-        document.getElementById('dispTotalPayable').style.display = getTgl('showTotalPayable') ? 'block' : 'none';
         document.getElementById('highValueWarning').style.display = getTgl('showWarnBanner') ? (parseInt(selectedPack?.price || 0) > 2000 ? 'block' : 'none') : 'none';
         document.getElementById('verificationStatus').style.display = getTgl('showAwaitingStatus') ? 'block' : 'none';
         document.getElementById('dispCancelBtnWrap').style.display = getTgl('showCancelBtn') ? 'flex' : 'none';
@@ -2399,6 +2416,11 @@
       document.getElementById('lockUI').style.display = 'none';
       
       const amountEl = document.getElementById('paymentAmount'); amountEl.textContent = '₹' + exactPriceStr;
+      
+      // NEW: Set the dynamically requested UC and IGN texts
+      document.getElementById('step3UcAmount').textContent = selectedPack.uc + " UC";
+      document.getElementById('step3IgnName').textContent = currentIgn;
+      
       window.injectDynamicStatusUI(); 
       
       const warningEl = document.getElementById('highValueWarning');
