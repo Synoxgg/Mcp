@@ -897,8 +897,25 @@
     <!-- STEP 3: PAYMENT -->
     <div id="step3" class="step">
       <div class="step-content">
+
+        <!-- NEW UC BLOCK MOVED ABOVE TITLE -->
+        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 15px; margin-top: 5px;">
+           <img src="uc-logo.webp" alt="UC" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(255,184,0,0.4));">
+           <div id="step3UcAmount" style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: #fff; letter-spacing: 1px;">-- UC</div>
+        </div>
+
+        <!-- NEW USER DETAILS TILE MOVED ABOVE TITLE -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: var(--radius-md); border: 1px solid var(--surface-border); margin-bottom: 25px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-display); overflow: hidden; white-space: nowrap; flex: 1; margin-right: 10px;">
+                <span id="displayUidStep3" style="color:var(--primary); font-weight: 700; font-size: 15px; text-overflow: ellipsis; overflow: hidden; flex-shrink: 0;">--</span>
+                <span style="color: var(--text-muted); font-size: 14px; flex-shrink: 0;">•</span>
+                <span id="displayIgnStep3" style="color:#fff; font-weight: 600; font-size: 14px; text-overflow: ellipsis; overflow: hidden;">--</span>
+            </div>
+            <button type="button" class="btn btn-secondary" id="backToDetailsStep3" style="padding: 6px 12px; font-size: 13px; width: auto; margin: 0; min-height: unset; flex-shrink: 0;">Change</button>
+        </div>
+
         <h2 class="step-title" id="dispStep3Title">Payment</h2>
-        <p class="subnote" id="dispStep3Subnote">Scan & pay using any UPI app</p>
+        <p class="subnote" id="dispStep3Subnote">Complete your transaction.</p>
 
         <div class="payment-section">
           
@@ -926,15 +943,6 @@
             <!-- Hidden original total payable text to avoid JS errors, visually removed as requested -->
             <div id="dispTotalPayable" style="display: none !important;"></div>
             
-            <!-- NEW UC & USER DETAILS -->
-            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; margin-top: 5px;">
-               <img src="uc-logo.webp" alt="UC" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(255,184,0,0.4));">
-               <div id="step3UcAmount" style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 25px; letter-spacing: 1px;">-- UC</div>
-               
-               <div style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">UC will be Credited to BGMI User:</div>
-               <div id="step3IgnName" style="color: var(--primary); font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: 1px;">--</div>
-            </div>
-
             <div style="font-size: 36px; font-weight: 800; color: var(--primary); font-family: var(--font-display); margin-bottom: 20px; text-shadow: 0 0 20px rgba(255,184,0,0.3);">
               <span id="paymentAmount">₹0</span>
             </div>
@@ -2313,7 +2321,12 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...'; btn.disabled = true;
 
         currentUid = uidInput.value; currentIgn = ignInput.value;
-        document.getElementById('displayUid').textContent = currentUid; document.getElementById('displayIgn').textContent = currentIgn;
+        
+        // Update both Step 2 and Step 3 user details displays
+        document.getElementById('displayUid').textContent = currentUid; 
+        document.getElementById('displayIgn').textContent = currentIgn;
+        document.getElementById('displayUidStep3').textContent = currentUid; 
+        document.getElementById('displayIgnStep3').textContent = currentIgn;
 
         const purchasedPacks = await fetchPurchasedPacks(currentUid);
         
@@ -2342,6 +2355,14 @@
     };
 
     document.getElementById('backToDetails').onclick = () => history.back();
+    
+    // Add logic for Step 3 change button
+    document.getElementById('backToDetailsStep3').onclick = () => {
+        if(qrTimer) clearInterval(qrTimer);
+        if(paymentVerificationInterval) clearInterval(paymentVerificationInterval);
+        if(typeof window.releaseLock === 'function') { window.releaseLock(exactPriceStr); }
+        history.go(-2); // Take them back to Step 1 directly to edit details
+    };
 
     // --- LOCK WAIT UI LOGIC ---
     window.cancelLockWait = function() {
@@ -2417,9 +2438,8 @@
       
       const amountEl = document.getElementById('paymentAmount'); amountEl.textContent = '₹' + exactPriceStr;
       
-      // NEW: Set the dynamically requested UC and IGN texts
+      // NEW: Set the dynamically requested UC text only
       document.getElementById('step3UcAmount').textContent = selectedPack.uc + " UC";
-      document.getElementById('step3IgnName').textContent = currentIgn;
       
       window.injectDynamicStatusUI(); 
       
@@ -2428,7 +2448,7 @@
       } else { warningEl.style.display = 'none'; }
         
       document.getElementById('razorpayCard').style.display = 'block';
-      document.getElementById('dispStep3Subnote').textContent = "Complete your transaction securely";
+      document.getElementById('dispStep3Subnote').textContent = "Complete your transaction.";
 
       document.getElementById('rzpExactAmountText').textContent = exactPriceStr;
       
