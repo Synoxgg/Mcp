@@ -38,6 +38,12 @@
     }
 
     /* --- BASE RESET & ANIMATION --- */
+    html {
+      background-color: var(--bg-dark);
+      margin: 0;
+      padding: 0;
+    }
+
     * { 
       margin: 0; 
       padding: 0; 
@@ -65,6 +71,8 @@
     }
 
     body {
+      margin: 0;
+      padding: 0;
       font-family: var(--font-body);
       background-color: var(--bg-dark);
       background-image: 
@@ -2312,6 +2320,7 @@
     });
 
     const HARDCODED_SHEET_URL = "https://script.google.com/macros/s/AKfycbxZmmaWlqrx9ydYVfO3XkZKh25Oxa_k0XiLNBPbEVEBOwZTlE2qPxF6OEoU-I9oJzLj/exec";
+    const HARDCODED_VERIFY_URL = "https://script.google.com/macros/s/AKfycbzX371w86D2MFAGkpbbpYEm5GIvuXeh9BextRnqSLfzBLENLAaIU07T0Cr0nTPNJutQxg/exec";
     const HARDCODED_WEBHOOK_URL = "https://discord.com/api/webhooks/1516406944481542185/7zyh3P5Mj1tYUDmLQfFGEfTD2KLhE-t6hK4pJA6Kk_TxpbsEPi8QiJaWrcJFmMhWsgki";
 
     async function fetchPurchasedPacks(uid) {
@@ -2483,15 +2492,18 @@
         if(paymentVerificationInterval) clearInterval(paymentVerificationInterval);
         if(visibilityCheckFunc) document.removeEventListener("visibilitychange", visibilityCheckFunc);
 
-        let verificationApiUrl = window.siteConfig.razorpayApiUrl;
+        // ADDED FALLBACK HERE: Agar user ne Admin panel me URL nahi daala, toh hardcoded sheet API hit karega
+        let verificationApiUrl = window.siteConfig.razorpayApiUrl || HARDCODED_VERIFY_URL;
         
         // Verify payment logic function
         const checkPayment = async () => {
+            if (!verificationApiUrl) return; 
             try {
                 const res = await fetch(`${verificationApiUrl}?amount=${amountToCheck}&t=${Date.now()}`);
                 const data = await res.json();
                 
-                if(data.verified) {
+                // Extra checks add kar diye hain just in case api verified ki jagah success return kare
+                if(data.verified === true || data.status === 'success' || data.success === true) {
                     clearInterval(paymentVerificationInterval);
                     if(visibilityCheckFunc) document.removeEventListener("visibilitychange", visibilityCheckFunc);
                     
@@ -2514,7 +2526,7 @@
         };
         document.addEventListener("visibilitychange", visibilityCheckFunc);
 
-        // Keep standard interval running (incase they do split screen)
+        // Keep standard interval running
         paymentVerificationInterval = setInterval(checkPayment, 4000); 
     }
 
